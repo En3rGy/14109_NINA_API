@@ -10,9 +10,9 @@
             <outputs>
 				<output type="string" const_name="sAllWarnings" init_value="">1: Alle Warnungen</output>			
 				<output type="string" const_name="sHeadline" init_value="">2: Meldung</output>
-				<output type="number" const_name="nSeverity" init_value="0">3: Severity</output>
+				<output type="number" const_name="nSeverity" init_value="0">3: Schweregrad</output>
 				<output type="string" const_name="sUrgency" init_value="0">4: Dringlichkeit</output>
-				<output type="string" const_name="sCertainty" init_value="0">5: Certainty</output>
+				<output type="string" const_name="sCertainty" init_value="0">5: Gewissheit</output>
 				<output type="string" const_name="sDescr" init_value="0">6: Beschreibung</output>
 				<output type="string" const_name="sInstr" init_value="0">7: Anleitung</output>
 				<output type="string" const_name="sJson" init_value="">8: Json</output>
