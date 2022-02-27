@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<config>
+    <modules>
+        <module category="Datenaustausch" context="hsl20_4_NINA_API" id="14109" name="NINA API (14109)" version="0.01">
+            <inputs>
+				<input type="string" const_name="sAGS" init_value="">1: Amtlicher Gebietsschlüssel</input>
+				<input type="number" const_name="nUpdateRate" init_value="0">2: Update-Rate (s)</input>
+				<input type="number" const_name="nOn" init_value="0">3: Ein/Aus (1/0)</input>				
+            </inputs>
+            <outputs>
+				<output type="string" const_name="sHeadline1" init_value="">1: Headline 1</output>
+				<output type="number" const_name="nSeverity1" init_value="0">2: Severity 1</output>
+				<output type="string" const_name="sJson" init_value="">3: Json</output>
+            </outputs>
+			<remanent_variables>
+            </remanent_variables>
+            <imports>
+            </imports>		
+        </module>	
+    </modules>
+</config>
