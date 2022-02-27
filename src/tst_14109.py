@@ -45,7 +45,7 @@ class hsl20_4:
 
         def _set_output_value(self, pin, value):
             self.debug_output_value[int(pin)] = value
-            print "# Out: " + str(value) + " @ pin " + str(pin)
+            print "# Out: pin " + str(pin) + " <- " + str(value)
 
         def _get_input_value(self, pin):
             if pin in self.debug_input_value:
@@ -110,8 +110,15 @@ class NINAAPI_14109_14109(hsl20_4.BaseModule):
         self.PIN_I_SAGS=1
         self.PIN_I_NUPDATERATE=2
         self.PIN_I_NON=3
-        self.PIN_O_SHEADLINE1=1
-        self.PIN_O_NSEVERITY1=2
+        self.PIN_O_SALLWARNINGS=1
+        self.PIN_O_SHEADLINE=2
+        self.PIN_O_NSEVERITY=3
+        self.PIN_O_SURGENCY=4
+        self.PIN_O_SCERTAINTY=5
+        self.PIN_O_SDESCR=6
+        self.PIN_O_SINSTR=7
+        self.PIN_O_SJSON=8
+
 
 ########################################################################################################
 #### Own written code can be placed after this commentblock . Do not change or delete commentblock! ####
@@ -127,33 +134,38 @@ class NINAAPI_14109_14109(hsl20_4.BaseModule):
     # UV - Warnung -> rosa -> Level 20
     # Keine Warnungen -> ---
 
-
     severity = {"Vorwarnung": 1, "Minor": 2, "Moderate": 3, "Severe": 4, "Extreme": 5}
 
     def set_output_value_sbc(self, pin, val):
         if pin in self.g_out_sbc:
             if self.g_out_sbc[pin] == val:
-                print ("# SBC: " + str(val) + " @ pin " + str(pin) + ", data not send!")
+                print ("# SBC: pin " + str(pin) + " <- data not send / " + str(val))
                 return
 
         self._set_output_value(pin, val)
         self.g_out_sbc[pin] = val
 
-    def get_data(self):
-        url_parsed = urlparse.urlparse("https://nina.api.proxy.bund.dev/api31/dashboard")
-        # Use Framework to resolve the host ip adress.
+    def get_data(self, warning_id=str()):
+        if warning_id:
+            url_parsed = urlparse.urlparse("https://nina.api.proxy.bund.dev/api31/warnings/")
+        else:
+            url_parsed = urlparse.urlparse("https://nina.api.proxy.bund.dev/api31/dashboard")
+        # Use Framework to resolve the host ip address.
         host_ip = self.FRAMEWORK.resolve_dns(url_parsed.hostname)
         # Append port if provided.
         netloc = host_ip
         if url_parsed.port is not None:
             netloc += ':%s' % url_parsed.port
         # Build URL with the host replaced by the resolved ip address.
-        url_resolved = urlparse.urlunparse((url_parsed[0], netloc) + url_parsed[2:])
+        url_resolved = urlparse.urlunparse((url_parsed[0], netloc) + url_parsed[2:])  # type : str
         # Build a SSL Context to disable certificate verification.
         response_data = ""
         ags = self._get_input_value(self.PIN_I_SAGS)
         try:
-            url_resolved = url_resolved + "/" + ags + ".json"
+            if warning_id:
+                url_resolved = url_resolved + "/" + warning_id + ".json"
+            else:
+                url_resolved = url_resolved + "/" + ags + ".json"
             ctx = ssl._create_unverified_context()
 
             request = urllib2.Request(url_resolved, headers={'Host': url_parsed.hostname, "accept": "application/json"})
@@ -166,126 +178,109 @@ class NINAAPI_14109_14109(hsl20_4.BaseModule):
 
         return response_data
 
-    def conv_time(self, str_time):
-        tz_time = time.strptime(str_time, "%Y-%m-%dT%H:%M:%SZ")  # 2021-06-28T18:17:00Z
-        unix_time = calendar.timegm(tz_time)
-        return unix_time
-
     def read_json(self, json_data):
-        data = json.loads(json_data)
+        warnings_data = json.loads(json_data)
         self.set_output_value_sbc(self.PIN_O_SJSON, json_data)
-        features_cnt = 0
-        if "data" in data:
-            features_cnt = data["totalFeatures"]
-            self.DEBUG.set_value("Features for " + str(self._get_input_value(self.PIN_I_SCITY)), features_cnt)
-            if features_cnt == 0:
-                self.DEBUG.add_message("14109 " + str(self._get_input_value(self.PIN_I_SAGS)) + ": No warn data available.")
-                self.reset_outputs()
-                return
+        warnings_cnt = len(warnings_data)
+        self.DEBUG.set_value("Warnings for " + str(self._get_input_value(self.PIN_I_SAGS)), warnings_cnt)
 
-        else:
-            self.valid_data = False
-            self.DEBUG.add_message("14101 " + str(self._get_input_value(self.PIN_I_SCITY)) + ": Could not receive warn data.")
+        if warnings_cnt == 0:
+            self.DEBUG.add_message("14109 " + str(self._get_input_value(self.PIN_I_SAGS)) + ": No warn data available.")
+            self.reset_outputs()
             return
 
-        if "features" in data:
-            features_data = data["features"]
-            all_warnings = self.get_all_warnings(features_data)
-            self.set_output_value_sbc(self.PIN_O_SALLWRNSTR, all_warnings.encode("ascii", "xmlcharrefreplace"))
+        all_warnings = self.get_all_warnings(warnings_data)
+        if all_warnings:
+            self.set_output_value_sbc(self.PIN_O_SALLWARNINGS, all_warnings.encode("ascii", "xmlcharrefreplace"))
+        else:
+            self.DEBUG.add_message("14109 " + str(self._get_input_value(self.PIN_I_SAGS)) + ": No warn data available.")
+            self.valid_data = False
+            self.reset_outputs()
+            return
 
-            # find worst warning
-            worst_data = {}
-            max_level = 0
-            for i in range(0, features_cnt):
-                try:
-                    feature_data = features_data[i]["properties"]
-                    severity = feature_data["SEVERITY"]
-                    level = 0
+        # find worst warning
+        worst_data = {}
+        max_level = 0
+        for i in range(0, warnings_cnt):
+            try:
+                if "payload" in warnings_data[i]:
+                    payload = warnings_data[i]["payload"]
+                    if "data" in payload:
+                        data = payload["data"]
+                        severity = self.get_val(data, "severity")
+                        level = 0
 
-                    if feature_data["URGENCY"] == "Future":
-                        level = 1
-                    elif feature_data["EC_GROUP"] == "HEAT":
-                        level = 20
-                    elif severity in self.severity:
-                        level = self.severity[severity]
-                    else:
-                        level = -100
+                        if severity in self.severity:
+                            level = self.severity[severity]
+                        else:
+                            level = -100
 
-                    if level > max_level:
-                        max_level = level
-                        worst_data = feature_data
+                        if level > max_level:
+                            max_level = level
+                            worst_data = payload["data"]
+                            worst_data["warning_id"] = self.get_val(payload, "id")
 
-                    worst_data["LEVEL"] = max_level
+                        worst_data["LEVEL"] = max_level
 
-                finally:
-                    pass
+            finally:
+                pass
 
-            # event = worst_data["EVENT"]
-            headline = worst_data["HEADLINE"]
-            descr = worst_data["DESCRIPTION"]
-            instruction = worst_data["INSTRUCTION"]
-            start_time = worst_data["ONSET"]
-            start_time = self.conv_time(start_time)
-            stop_time = worst_data["EXPIRES"]
-            stop_time = self.conv_time(stop_time)
+        headline = worst_data["headline"]  # type : str
+        level = worst_data["LEVEL"]
+        if headline:
+            self.set_output_value_sbc(self.PIN_O_SHEADLINE, headline.encode("ascii", "xmlcharrefreplace"))
+        if level:
+            self.set_output_value_sbc(self.PIN_O_NSEVERITY, level)
 
-            # resp_type = worst_data["RESPONSETYPE"]
-            # urgency = worst_data["URGENCY"]
-            # severity = worst_data["SEVERITY"]
-            # certainty = worst_data["CERTAINTY"]
-            level = worst_data["LEVEL"]
+        return worst_data
 
-            # determine if warn window is active
-            warning_active = self.is_warning_active(start_time, stop_time)
-            if self.warning_active != warning_active:
-                self.set_output_value_sbc(self.PIN_O_BACTIVE, warning_active)
-                self.warning_active = warning_active
+    def complete_worst_warning_data(self, worst_data):
+        warning_id = worst_data["warning_id"]
+        if warning_id:
+            full_warning = self.get_data(warning_id)
+            return full_warning
 
-            if headline:
-                self.set_output_value_sbc(self.PIN_O_SHEADLINE, headline.encode("ascii", "xmlcharrefreplace"))
-            if descr:
-                self.set_output_value_sbc(self.PIN_O_SDESCR, descr.encode("ascii", "xmlcharrefreplace"))
-            if instruction:
-                self.set_output_value_sbc(self.PIN_O_SINSTR, instruction.encode("ascii", "xmlcharrefreplace"))
-            if start_time:
-                self.set_output_value_sbc(self.PIN_O_FSTART, start_time)
-            if stop_time:
-                self.set_output_value_sbc(self.PIN_O_FSTOP, stop_time)
-            if level:
-                self.set_output_value_sbc(self.PIN_O_FLEVEL, level)
-            self.set_output_value_sbc(self.PIN_O_BERROR, False)
-            if all_warnings:
-                self.set_output_value_sbc(self.PIN_O_SALLWRNSTR, all_warnings.encode("ascii", "xmlcharrefreplace"))
-            self.set_output_value_sbc(self.PIN_O_BACTIVE, warning_active)
+    def read_detailed_json(self, full_warning):
+        full_warning = json.loads(full_warning)
+        if not full_warning:
+            self.valid_data = False
+            return
 
-            self.set_output_value_sbc(self.PIN_O_SHEATWRNSTR, "")
-            self.set_output_value_sbc(self.PIN_O_SLV1STR, "")
-            self.set_output_value_sbc(self.PIN_O_SLV2STR, "")
-            self.set_output_value_sbc(self.PIN_O_SLV3STR, "")
-            self.set_output_value_sbc(self.PIN_O_SLV4STR, "")
-            self.set_output_value_sbc(self.PIN_O_SPREWRNSTR, "")
-            self.set_output_value_sbc(self.PIN_O_SUVWRNSTR, "")
+        if "info" not in full_warning:
+            self.valid_data = False
+            return
 
-            if level == 1:
-                self.set_output_value_sbc(self.PIN_O_SPREWRNSTR, all_warnings.encode("ascii", "xmlcharrefreplace"))
-            elif level == 2:
-                self.set_output_value_sbc(self.PIN_O_SLV1STR, all_warnings.encode("ascii", "xmlcharrefreplace"))
-            elif level == 3:
-                self.set_output_value_sbc(self.PIN_O_SLV2STR, all_warnings.encode("ascii", "xmlcharrefreplace"))
-            elif level == 4:
-                self.set_output_value_sbc(self.PIN_O_SLV3STR, all_warnings.encode("ascii", "xmlcharrefreplace"))
-            elif level == 5:
-                self.set_output_value_sbc(self.PIN_O_SLV4STR, all_warnings.encode("ascii", "xmlcharrefreplace"))
-            elif level > 20:
-                self.set_output_value_sbc(self.PIN_O_SHEATWRNSTR, all_warnings.encode("ascii", "xmlcharrefreplace"))
-            elif level == 20:
-                self.set_output_value_sbc(self.PIN_O_SUVWRNSTR, all_warnings.encode("ascii", "xmlcharrefreplace"))
-
-            self.valid_data = True
-
+        info = full_warning["info"]
+        if len(info) == 1:
+            info = info[0]
         else:
             self.valid_data = False
+            print("Something went wrong")
+            return
 
+        # "category": [ "Fire", "Infra" ]
+        # "event"
+
+        urgency = self.get_val(info, "urgency")
+        certainty = self.get_val(info, "certainty")
+        description = self.get_val(info, "description")
+        instruction = self.get_val(info, "instruction")
+
+        if urgency:
+            self.set_output_value_sbc(self.PIN_O_SURGENCY, urgency.encode("ascii", "xmlcharrefreplace"))
+        if certainty:
+            self.set_output_value_sbc(self.PIN_O_SCERTAINTY, certainty.encode("ascii", "xmlcharrefreplace"))
+        if description:
+            self.set_output_value_sbc(self.PIN_O_SDESCR, description.encode("ascii", "xmlcharrefreplace"))
+        if instruction:
+            self.set_output_value_sbc(self.PIN_O_SINSTR, instruction.encode("ascii", "xmlcharrefreplace"))
+
+        if "eventCode" in info:
+            if len(info["eventCode"]) > 0:
+                event_code = self.get_val(info["eventCode"][0], "value")
+                print(event_code)
+
+        self.valid_data = True
 
     def get_val(self, json_data, key):
         val = ""
@@ -293,33 +288,32 @@ class NINAAPI_14109_14109(hsl20_4.BaseModule):
             val = json_data[key]
         return val
 
-    def get_all_warnings(self, features_data):
+    def get_all_warnings(self, warnings_data):
         msg = ""
-        for i in range(0, len(features_data)):
-            feature_data = features_data[i]["properties"]
-            msg += self.get_val(feature_data, "EVENT")
-            if i < len(features_data) - 1:
-                msg += ", "
+
+        for i in range(0, len(warnings_data)):
+            warning = warnings_data[i]
+            if "payload" in warning:
+                if "data" in warning["payload"]:
+                    payload = warning["payload"]["data"]
+                    msg += self.get_val(payload, "headline")
+                    if i < len(warnings_data) - 1:
+                        msg += ", "
 
         return msg
-
-    # determine if warn window is active
-    # time is provided as us but function demands s
-    # "start":1578765600 000,"end":1578823200 000
-    def is_warning_active(self, start, end):
-        current_time = time.localtime()
-        end_time = time.localtime(end)
-        start_time = time.localtime(start)
-        return (current_time > start_time) and (current_time < end_time)
 
     def reset_outputs(self):
         self.DEBUG.add_message("14109 " + str(self._get_input_value(self.PIN_I_SAGS)) + ": Delete warn data.")
         self.valid_data = False
-        self.set_output_value_sbc(self.PIN_O_SHEADLINE1, "")
-        self.set_output_value_sbc(self.PIN_O_NSEVERITY1, 0)
+        self.set_output_value_sbc(self.PIN_O_SALLWARNINGS, "")
+        self.set_output_value_sbc(self.PIN_O_SHEADLINE, "")
+        self.set_output_value_sbc(self.PIN_O_NSEVERITY, 0)
         self.set_output_value_sbc(self.PIN_O_SJSON, "")
 
     def update(self):
+        if not bool(self._get_input_value(self.PIN_I_NON)):
+            return
+
         interval = self._get_input_value(self.PIN_I_NUPDATERATE)
         if interval <= 0:
             return
@@ -327,7 +321,9 @@ class NINAAPI_14109_14109(hsl20_4.BaseModule):
         try:
             self.DEBUG.add_message("14109 " + str(self._get_input_value(self.PIN_I_SAGS)) + ": Requesting NINA data.")
             data = self.get_data()
-            self.read_json(data)
+            worst_data = self.read_json(data)
+            full_warning = self.complete_worst_warning_data(worst_data)
+            self.read_detailed_json(full_warning)
         finally:
             threading.Timer(interval, self.update).start()
 
@@ -335,16 +331,18 @@ class NINAAPI_14109_14109(hsl20_4.BaseModule):
         self.DEBUG = self.FRAMEWORK.create_debug_section()
         self.g_out_sbc = {}
         self.valid_data = False
-        self.warning_active = False
 
         self.update()
 
     def on_input_value(self, index, value):
-        ags = str(self._get_input_value(self.PIN_I_SAGS))
+        if not bool(self._get_input_value(self.PIN_I_NON)):
+            return
 
         # get json date if triggered
-        if (index == self.PIN_I_UDATE_RATE) and value > 0:
-            self.update()
+        if (index == self.PIN_I_NUPDATERATE) and value == 0:
+            return
+
+        self.update()
 
 
 ################################################################################
@@ -359,16 +357,37 @@ class TestSequenceFunctions(unittest.TestCase):
             self.cred = json.load(f)
 
         self.test = NINAAPI_14109_14109(0)
-
         self.test.debug_input_value[self.test.PIN_I_SAGS] = self.cred["PIN_I_SAGS"]
-
         self.test.on_init()
+
+    def test_update(self):
+        print("\n### test_update (! combines several other testcases !)")
+        self.test.debug_input_value[self.test.PIN_I_NON] = 1
+        self.test.debug_input_value[self.test.PIN_I_NUPDATERATE] = 10000
+        self.test.update()
 
     def test_get_json(self):
         print("\n### test_get_json")
         ret = self.test.get_data()
         print(ret)
         self.assertTrue(ret)
+
+    def test_read_json(self):
+        print("\n### test_read_json")
+        with open("sample1.txt") as f:
+            json_data = f.read()
+
+        ret = self.test.read_json(json_data)
+        self.assertTrue(ret)
+
+    def test_read_detailed_json(self):
+        print("\n### test_read_detailed_json")
+        with open("sample2.txt") as f:
+            json_data = f.read()
+
+        self.test.read_detailed_json(json_data)
+        self.assertTrue(True)
+
 
 if __name__ == '__main__':
     unittest.main()

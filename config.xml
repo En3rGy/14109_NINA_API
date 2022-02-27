@@ -4,13 +4,18 @@
         <module category="Datenaustausch" context="hsl20_4_NINA_API" id="14109" name="NINA API (14109)" version="0.01">
             <inputs>
 				<input type="string" const_name="sAGS" init_value="">1: Amtlicher Gebietsschlüssel</input>
-				<input type="number" const_name="nUpdateRate" init_value="0">2: Update-Rate (s)</input>
-				<input type="number" const_name="nOn" init_value="0">3: Ein/Aus (1/0)</input>				
+				<input type="number" const_name="nUpdateRate" init_value="307">2: Update-Rate (s)</input>
+				<input type="number" const_name="nOn" init_value="1">3: Ein/Aus (1/0)</input>				
             </inputs>
             <outputs>
-				<output type="string" const_name="sHeadline1" init_value="">1: Headline 1</output>
-				<output type="number" const_name="nSeverity1" init_value="0">2: Severity 1</output>
-				<output type="string" const_name="sJson" init_value="">3: Json</output>
+				<output type="string" const_name="sAllWarnings" init_value="">1: Alle Warnungen</output>			
+				<output type="string" const_name="sHeadline" init_value="">2: Meldung</output>
+				<output type="number" const_name="nSeverity" init_value="0">3: Severity</output>
+				<output type="string" const_name="sUrgency" init_value="0">4: Dringlichkeit</output>
+				<output type="string" const_name="sCertainty" init_value="0">5: Certainty</output>
+				<output type="string" const_name="sDescr" init_value="0">6: Beschreibung</output>
+				<output type="string" const_name="sInstr" init_value="0">7: Anleitung</output>
+				<output type="string" const_name="sJson" init_value="">8: Json</output>
             </outputs>
 			<remanent_variables>
             </remanent_variables>

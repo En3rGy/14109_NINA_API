@@ -1,0 +1,70 @@
+{
+  "identifier": "mow.DE-ST-SK-W070-20220227-000",
+  "sender": "DE-ST-SK-W070",
+  "sent": "2022-02-27T06:45:13+01:00",
+  "status": "Actual",
+  "msgType": "Alert",
+  "scope": "Public",
+  "code": [
+    "DVN:2"
+  ],
+  "info": [
+    {
+      "language": "DE",
+      "category": [
+        "Fire",
+        "Infra"
+      ],
+      "event": "Gefahreninformation",
+      "urgency": "Immediate",
+      "severity": "Minor",
+      "certainty": "Observed",
+      "eventCode": [
+        {
+          "valueName": "profile:DE-BBK-EVENTCODE",
+          "value": "BBK-EVC-030"
+        }
+      ],
+      "headline": "Rauchentwicklung durch Brand eines Strohdiemens",
+      "description": "An der L 173 brennen mehrere tausend Strohballen, die Rauchwolke zieht derzeit in Richtung der Ortslagen Bad Lauchstädt/Schotterey und Großgräfendorf.",
+      "instruction": "Schließen Sie alle Fenster und Türen.<br/>Schalten Sie die Belüftung aus und schließen Sie die Fenster.",
+      "parameter": [
+        {
+          "valueName": "warnVerwaltungsbereiche",
+          "value": "150880025025"
+        },
+        {
+          "valueName": "instructionCode",
+          "value": "BBK-ISC-025 BBK-ISC-026"
+        },
+        {
+          "valueName": "sender_langname",
+          "value": "Integrierte Leitstelle Saalekreis"
+        },
+        {
+          "valueName": "sender_signature",
+          "value": "Landkreis Saalekreis, Ordnungsamt\nDomplatz 2\n06217 Merseburg"
+        },
+        {
+          "valueName": "PHGEM",
+          "value": "7170,100001"
+        },
+        {
+          "valueName": "GRID",
+          "value": "224144,224755+3,225368+2,500001"
+        }
+      ],
+      "area": [
+        {
+          "areaDesc": "Gemeinde/Stadt: Stadt Bad Lauchstädt",
+          "geocode": [
+            {
+              "valueName": "AreaId",
+              "value": "0"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

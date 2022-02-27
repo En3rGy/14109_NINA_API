@@ -9,15 +9,22 @@ Baustein zum Abruf von Warnmeldungen über die <a href="https://nina.api.bund.de
 | No. | Name | Initialisation | Description |
 | --- | --- | --- | --- |
 | 1 | Amtlicher Gebietsschlüssel | "" | Amtlicher Gebietsschlüssel, kann z.B. <a href="">hier</a> bezogen werden. Die Letzten 7 Stellen müssen mit "0000000" ersetzt werden, da Daten nur auf Kreisebene bereitgestellt werden. |
+| 2 | Update-Rate (s) | 307 | Intervall in Sekunden, in dem der BBK-Server nach neuen Warnungen abgefragt wird. |
+| 3 | Ein/Aus | 1 | Bei 1 arbeitet der Bautein, bei 0 nicht |
 
 
 ## Ausgänge
 
 | No. | Name | Initialisation | Description |
 | --- | --- | --- | --- |
-| 1 | Headline | "" | Warnmeldung |
-| 2 | Severity | 0 | Warnmeldung |
-| 3 | Json | 0 | Empfangene Json Meldung mit allen Details. |
+| 1 | Alle Warnungen | "" | Text mit allen aktuell vorliegenden Warnungen |
+| 2 | Meldung | "" | Kritischste Warnung |
+| 3 | Schweregrad | 0 | Schweregrad der kritischsten Meldung |
+| 4 | Dringlichkeit | "" | Dringlichkeit der kritischsten Meldung |
+| 5 | Gewissheit | 0 | Sicherheit / Gewissheit der kritischsten Meldung |
+| 6 | Beschriebung | 0 | Beschreibung der kritischsten Meldung |
+| 7 | Anleitung | 0 | Verhaltensanweisung zur kritischsten Meldung |
+| 8 | Json | 0 | Json-Meldung zu den empfangenen Warnungen |
 
 ## Sonstiges
 
@@ -40,7 +47,6 @@ Baustein zum Abruf von Warnmeldungen über die <a href="https://nina.api.bund.de
 Please use [github issue feature](https://github.com/En3rGy/14109_NINA_API/issues) to report bugs or rise feature requests.
 Questions can be addressed as new threads at the [knx-user-forum.de](https://knx-user-forum.de) also. There might be discussions and solutions already.
 
-
 ### Code
 
 Der Python-Code des Bausteins befindet sich in der hslz Datei oder auf [github](https://github.com/En3rGy/14102_FritzBox_TR-064).
@@ -51,7 +57,6 @@ Der Python-Code des Bausteins befindet sich in der hslz Datei oder auf [github](
     - Install python markdown module (for generating the documentation) `python -m pip install markdown`
 - Python editor [PyCharm](https://www.jetbrains.com/pycharm/)
 - [Gira Homeserver Interface Information](http://www.hs-help.net/hshelp/gira/other_documentation/Schnittstelleninformationen.zip)
-
 
 ## Requirements
 
