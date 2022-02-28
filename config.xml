@@ -15,7 +15,7 @@
 				<output type="string" const_name="sCertainty" init_value="0">5: Gewissheit</output>
 				<output type="string" const_name="sDescr" init_value="0">6: Beschreibung</output>
 				<output type="string" const_name="sInstr" init_value="0">7: Anleitung</output>
-				<output type="string" const_name="sEventURL" init_value="0">8: Symbol-URL</output>
+				<output type="number" const_name="nEventId" init_value="0">8: Symbol-Id</output>
 				<output type="string" const_name="sJson" init_value="">9: Json</output>
             </outputs>
 			<remanent_variables>

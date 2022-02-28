@@ -30,7 +30,7 @@ class NINAAPI_14109_14109(hsl20_4.BaseModule):
         self.PIN_O_SCERTAINTY=5
         self.PIN_O_SDESCR=6
         self.PIN_O_SINSTR=7
-        self.PIN_O_SEVENTURL=8
+        self.PIN_O_NEVENTID=8
         self.PIN_O_SJSON=9
 
 ########################################################################################################
@@ -192,16 +192,19 @@ class NINAAPI_14109_14109(hsl20_4.BaseModule):
             if len(info["eventCode"]) > 0:
                 event_code = self.get_val(info["eventCode"][0], "value")
                 print(event_code)
+                event_id = int(event_code[len(event_code)-3:])
+                # event_url = "https://nina.api.proxy.bund.dev/api31/appdata/gsb/eventCodes/" + event_code + ".png"
+                self.set_output_value_sbc(self.PIN_O_NEVENTID, event_id)
 
         self.valid_data = True
 
-    def get_val(self, json_data, key):
+    def get_val(self, json_data, key):  # type : str
         val = ""
         if key in json_data:
             val = json_data[key]
         return val
 
-    def get_all_warnings(self, warnings_data):
+    def get_all_warnings(self, warnings_data):  # type : str
         msg = ""
 
         for i in range(0, len(warnings_data)):
@@ -222,6 +225,11 @@ class NINAAPI_14109_14109(hsl20_4.BaseModule):
         self.set_output_value_sbc(self.PIN_O_SHEADLINE, "")
         self.set_output_value_sbc(self.PIN_O_NSEVERITY, 0)
         self.set_output_value_sbc(self.PIN_O_SJSON, "")
+        self.set_output_value_sbc(self.PIN_O_SINSTR, "")
+        self.set_output_value_sbc(self.PIN_O_SDESCR, "")
+        self.set_output_value_sbc(self.PIN_O_SCERTAINTY, "")
+        self.set_output_value_sbc(self.PIN_O_SURGENCY, "")
+        self.set_output_value_sbc(self.PIN_O_NEVENTID, "")
 
     def update(self):
         if not bool(self._get_input_value(self.PIN_I_NON)):
