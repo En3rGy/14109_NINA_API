@@ -30,7 +30,8 @@ class NINAAPI_14109_14109(hsl20_4.BaseModule):
         self.PIN_O_SCERTAINTY=5
         self.PIN_O_SDESCR=6
         self.PIN_O_SINSTR=7
-        self.PIN_O_SJSON=8
+        self.PIN_O_SEVENTURL=8
+        self.PIN_O_SJSON=9
 
 ########################################################################################################
 #### Own written code can be placed after this commentblock . Do not change or delete commentblock! ####

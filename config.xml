@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <config>
     <modules>
-        <module category="Datenaustausch" context="hsl20_4_NINA_API" id="14109" name="NINA API (14109)" version="0.01">
+        <module category="Datenaustausch" context="hsl20_4_NINA_API" id="14109" name="NINA API (14109)" version="0.02">
             <inputs>
 				<input type="string" const_name="sAGS" init_value="">1: Amtlicher Gebietsschlüssel</input>
 				<input type="number" const_name="nUpdateRate" init_value="307">2: Update-Rate (s)</input>
-				<input type="number" const_name="nOn" init_value="1">3: Ein/Aus (1/0)</input>				
+				<input type="number" const_name="nOn" init_value="1">3: Ein/Aus (1/0)</input>
             </inputs>
             <outputs>
 				<output type="string" const_name="sAllWarnings" init_value="">1: Alle Warnungen</output>			
@@ -15,7 +15,8 @@
 				<output type="string" const_name="sCertainty" init_value="0">5: Gewissheit</output>
 				<output type="string" const_name="sDescr" init_value="0">6: Beschreibung</output>
 				<output type="string" const_name="sInstr" init_value="0">7: Anleitung</output>
-				<output type="string" const_name="sJson" init_value="">8: Json</output>
+				<output type="string" const_name="sEventURL" init_value="0">8: Symbol-URL</output>
+				<output type="string" const_name="sJson" init_value="">9: Json</output>
             </outputs>
 			<remanent_variables>
             </remanent_variables>

@@ -24,7 +24,8 @@ Baustein zum Abruf von Warnmeldungen über die <a href="https://nina.api.bund.de
 | 5 | Gewissheit | 0 | Sicherheit / Gewissheit der kritischsten Meldung |
 | 6 | Beschriebung | 0 | Beschreibung der kritischsten Meldung |
 | 7 | Anleitung | 0 | Verhaltensanweisung zur kritischsten Meldung |
-| 8 | Json | 0 | Json-Meldung zu den empfangenen Warnungen |
+| 8 | Symbol-URL | 0 | URL zu einem Symbol für die kritischste Meldung |
+| 9 | Json | 0 | Json-Meldung zu den empfangenen Warnungen |
 
 ## Sonstiges
 
@@ -35,7 +36,10 @@ Baustein zum Abruf von Warnmeldungen über die <a href="https://nina.api.bund.de
 
 ### Change Log
 
-- v0.1
+
+- v0.02
+  - Impr.: Symbol-URL als Ausgabe ergänzt
+- v0.01
     - Initiales Release
 
 ### Open Issues / Know Bugs
