@@ -5,12 +5,9 @@ import unittest
 # functional import
 
 import json
-import urllib
 import urllib2
 import ssl
 import urlparse
-import time
-import calendar
 import threading
 
 
@@ -23,9 +20,9 @@ class hsl20_4:
         pass
 
     class BaseModule:
-        debug_output_value = {}  # type: float
-        debug_set_remanent = {}  # type: float
-        debug_input_value = {}
+        debug_output_value = {}  # type: {}
+        debug_set_remanent = {}  # type: {}
+        debug_input_value = {}  # type: {}
 
         def __init__(self, a, b):
             pass
@@ -44,6 +41,10 @@ class hsl20_4:
             self.debug_set_remanent = val
 
         def _set_output_value(self, pin, value):
+            """
+
+            :type pin: int
+            """
             self.debug_output_value[int(pin)] = value
             print "# Out: pin " + str(pin) + " <- " + str(value)
 
@@ -161,12 +162,12 @@ class NINAAPI_14109_14109(hsl20_4.BaseModule):
         url_resolved = urlparse.urlunparse((url_parsed[0], netloc) + url_parsed[2:])  # type : str
         # Build a SSL Context to disable certificate verification.
         response_data = ""
-        ags = self._get_input_value(self.PIN_I_SAGS)
+        ags = self._get_input_value(self.PIN_I_SAGS)  # type : str
         try:
             if warning_id:
                 url_resolved = url_resolved + "/" + warning_id + ".json"
             else:
-                url_resolved = url_resolved + "/" + ags + ".json"
+                url_resolved = url_resolved + "/" + str(ags) + ".json"
             ctx = ssl._create_unverified_context()
 
             request = urllib2.Request(url_resolved, headers={'Host': url_parsed.hostname, "accept": "application/json"})
@@ -280,7 +281,11 @@ class NINAAPI_14109_14109(hsl20_4.BaseModule):
             if len(info["eventCode"]) > 0:
                 event_code = self.get_val(info["eventCode"][0], "value")
                 print(event_code)
-                event_id = int(event_code[len(event_code)-3:])
+                if "EVC" in event_code:
+                    event_id = int(event_code[len(event_code)-3:])
+                else:
+                    event_id = 1
+
                 # event_url = "https://nina.api.proxy.bund.dev/api31/appdata/gsb/eventCodes/" + event_code + ".png"
                 self.set_output_value_sbc(self.PIN_O_NEVENTID, event_id)
 
