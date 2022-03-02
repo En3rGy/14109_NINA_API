@@ -119,7 +119,8 @@ class NINAAPI_14109_14109(hsl20_4.BaseModule):
         self.PIN_O_SDESCR=6
         self.PIN_O_SINSTR=7
         self.PIN_O_NEVENTID=8
-        self.PIN_O_SJSON=9
+        self.PIN_O_SEVENTSYMBOLURL=9
+        self.PIN_O_SJSON=10
 
 
 ########################################################################################################
@@ -286,8 +287,9 @@ class NINAAPI_14109_14109(hsl20_4.BaseModule):
                 else:
                     event_id = 1
 
-                # event_url = "https://nina.api.proxy.bund.dev/api31/appdata/gsb/eventCodes/" + event_code + ".png"
+                event_url = "https://nina.api.proxy.bund.dev/api31/appdata/gsb/eventCodes/" + event_code + ".png"
                 self.set_output_value_sbc(self.PIN_O_NEVENTID, event_id)
+                self.set_output_value_sbc(self.PIN_O_SEVENTSYMBOLURL, event_url)
 
         self.valid_data = True
 

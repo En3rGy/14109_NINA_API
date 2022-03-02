@@ -16,7 +16,8 @@
 				<output type="string" const_name="sDescr" init_value="0">6: Beschreibung</output>
 				<output type="string" const_name="sInstr" init_value="0">7: Anleitung</output>
 				<output type="number" const_name="nEventId" init_value="0">8: Symbol-Id</output>
-				<output type="string" const_name="sJson" init_value="">9: Json</output>
+				<output type="string" const_name="sEventSymbolURL" init_value="0">9: Symbol-URL</output>
+				<output type="string" const_name="sJson" init_value="">10: Json</output>
             </outputs>
 			<remanent_variables>
             </remanent_variables>

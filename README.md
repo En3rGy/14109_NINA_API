@@ -25,7 +25,8 @@ Baustein zum Abruf von Warnmeldungen über die <a href="https://nina.api.bund.de
 | 6 | Beschriebung | 0 | Beschreibung der kritischsten Meldung |
 | 7 | Anleitung | 0 | Verhaltensanweisung zur kritischsten Meldung |
 | 8 | Symbol-Id | 0 | Id des Symbols für die kritischste Meldung<br>Grundlage für die Id ist der EVent Code. das BBK bietet Symbole für folgende Event Codes BBK-EVC-?, wobei das ? eine 3-stellige Zahl ersetzt. Für den Event Code BBK-EVC-004 liefert der Baustein bspw. die Id 4.<br>1 = Std. Symbol, bzw. Event Code nicht von der Art BBK-EVC<br>0 = Keine Meldung. |
-| 9 | Json | 0 | Json-Meldung zu den empfangenen Warnungen |
+| 9 | Symbol-URL | "" | URL zum BBK Symbol des Events |
+| 10 | Json | 0 | Json-Meldung zu den empfangenen Warnungen |
 
 ## Sonstiges
 
@@ -72,6 +73,7 @@ Der Python-Code des Bausteins befindet sich in der hslz Datei oder auf [github](
 6. Der Baustein soll bei empfangenen Warnungen, für die bedeutendste Warnung die Headline ausgeben. 
 7. Der Baustein soll bei empfangenen Warnungen, für die bedeutendste Warnung die Description ausgeben. 
 8. Der Baustein soll bei empfangenen Warnungen, für die bedeutendste Warnung die Instruction ausgeben. 
+9. 
 
 ## Software Design Description
 
