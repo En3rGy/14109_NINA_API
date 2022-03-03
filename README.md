@@ -37,7 +37,10 @@ Baustein zum Abruf von Warnmeldungen über die <a href="https://nina.api.bund.de
 
 ### Change Log
 
-
+- v0.03
+  - Bug: Crash bei Wiederholung nach 1. Timeout behoben
+  - Bug: Reset der Ausgänge bei fehlender Warnung korrigiert
+  - Impr.: Wenn keine Warnung vorliegt, wird als Symbol-URL `0` ausgegeben
 - v0.02
   - Impr.: Symbol-URL als Ausgabe ergänzt
 - v0.01

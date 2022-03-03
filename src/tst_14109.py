@@ -1,6 +1,7 @@
 # coding: UTF-8
 
 import unittest
+import time
 
 # functional import
 
@@ -142,7 +143,7 @@ class NINAAPI_14109_14109(hsl20_4.BaseModule):
     def set_output_value_sbc(self, pin, val):
         if pin in self.g_out_sbc:
             if self.g_out_sbc[pin] == val:
-                print ("# SBC: pin " + str(pin) + " <- data not send / " + str(val))
+                print ("# SBC: pin " + str(pin) + " <- data not send / " + str(val).decode("utf-8"))
                 return
 
         self._set_output_value(pin, val)
@@ -176,13 +177,20 @@ class NINAAPI_14109_14109(hsl20_4.BaseModule):
             response_data = response.read()
 
         except Exception as e:
-            # self.set_output_value_sbc(self.PIN_O_BERROR, True)
             self.DEBUG.add_message("14109 " + str(ags) + ": " + str(e) + " for '" + url_resolved + "'")
 
-        return response_data
+        finally:
+            return response_data
 
     def read_json(self, json_data):
-        warnings_data = json.loads(json_data)
+        try:
+            warnings_data = json.loads(json_data)
+
+        except Exception as e:
+            ags = self._get_input_value(self.PIN_I_SAGS)  # type : str
+            self.DEBUG.add_message("14109 " + str(ags) + ": " + str(e))
+            return
+
         self.set_output_value_sbc(self.PIN_O_SJSON, json_data)
         warnings_cnt = len(warnings_data)
         self.DEBUG.set_value("Warnings for " + str(self._get_input_value(self.PIN_I_SAGS)), warnings_cnt)
@@ -197,7 +205,6 @@ class NINAAPI_14109_14109(hsl20_4.BaseModule):
             self.set_output_value_sbc(self.PIN_O_SALLWARNINGS, all_warnings.encode("ascii", "xmlcharrefreplace"))
         else:
             self.DEBUG.add_message("14109 " + str(self._get_input_value(self.PIN_I_SAGS)) + ": No warn data available.")
-            self.valid_data = False
             self.reset_outputs()
             return
 
@@ -241,23 +248,25 @@ class NINAAPI_14109_14109(hsl20_4.BaseModule):
         warning_id = worst_data["warning_id"]
         if warning_id:
             full_warning = self.get_data(warning_id)
+            if not full_warning:
+                self.reset_outputs()
+                return
+
+            self.read_detailed_json(full_warning)
             return full_warning
 
     def read_detailed_json(self, full_warning):
         full_warning = json.loads(full_warning)
         if not full_warning:
-            self.valid_data = False
             return
 
         if "info" not in full_warning:
-            self.valid_data = False
             return
 
         info = full_warning["info"]
         if len(info) == 1:
             info = info[0]
         else:
-            self.valid_data = False
             print("Something went wrong")
             return
 
@@ -281,7 +290,6 @@ class NINAAPI_14109_14109(hsl20_4.BaseModule):
         if "eventCode" in info:
             if len(info["eventCode"]) > 0:
                 event_code = self.get_val(info["eventCode"][0], "value")
-                print(event_code)
                 if "EVC" in event_code:
                     event_id = int(event_code[len(event_code)-3:])
                 else:
@@ -290,8 +298,6 @@ class NINAAPI_14109_14109(hsl20_4.BaseModule):
                 event_url = "https://nina.api.proxy.bund.dev/api31/appdata/gsb/eventCodes/" + event_code + ".png"
                 self.set_output_value_sbc(self.PIN_O_NEVENTID, event_id)
                 self.set_output_value_sbc(self.PIN_O_SEVENTSYMBOLURL, event_url)
-
-        self.valid_data = True
 
     def get_val(self, json_data, key):  # type : str
         val = ""
@@ -315,7 +321,6 @@ class NINAAPI_14109_14109(hsl20_4.BaseModule):
 
     def reset_outputs(self):
         self.DEBUG.add_message("14109 " + str(self._get_input_value(self.PIN_I_SAGS)) + ": Delete warn data.")
-        self.valid_data = False
         self.set_output_value_sbc(self.PIN_O_SALLWARNINGS, "")
         self.set_output_value_sbc(self.PIN_O_SHEADLINE, "")
         self.set_output_value_sbc(self.PIN_O_NSEVERITY, 0)
@@ -325,6 +330,7 @@ class NINAAPI_14109_14109(hsl20_4.BaseModule):
         self.set_output_value_sbc(self.PIN_O_SCERTAINTY, "")
         self.set_output_value_sbc(self.PIN_O_SURGENCY, "")
         self.set_output_value_sbc(self.PIN_O_NEVENTID, "")
+        self.set_output_value_sbc(self.PIN_O_SEVENTSYMBOLURL, "0")
 
     def update(self):
         if not bool(self._get_input_value(self.PIN_I_NON)):
@@ -337,16 +343,19 @@ class NINAAPI_14109_14109(hsl20_4.BaseModule):
         try:
             self.DEBUG.add_message("14109 " + str(self._get_input_value(self.PIN_I_SAGS)) + ": Requesting NINA data.")
             data = self.get_data()
-            worst_data = self.read_json(data)
-            full_warning = self.complete_worst_warning_data(worst_data)
-            self.read_detailed_json(full_warning)
+            if not data:
+                self.reset_outputs()
+            else:
+                worst_data = self.read_json(data)
+                if worst_data:
+                    self.complete_worst_warning_data(worst_data)
+
         finally:
             threading.Timer(interval, self.update).start()
 
     def on_init(self):
         self.DEBUG = self.FRAMEWORK.create_debug_section()
         self.g_out_sbc = {}
-        self.valid_data = False
 
         self.update()
 
@@ -374,14 +383,40 @@ class TestSequenceFunctions(unittest.TestCase):
 
         self.test = NINAAPI_14109_14109(0)
         self.test.debug_input_value[self.test.PIN_I_SAGS] = self.cred["PIN_I_SAGS"]
+        self.test.debug_input_value[self.test.PIN_I_NUPDATERATE] = 10
+
+        self.test.debug_input_value[self.test.PIN_I_NON] = 0
         self.test.on_init()
+        self.test.debug_input_value[self.test.PIN_I_NON] = 1
 
     def test_update(self):
         print("\n### test_update (! combines several other testcases !)")
-        self.test.debug_input_value[self.test.PIN_I_NON] = 1
         self.test.debug_input_value[self.test.PIN_I_NUPDATERATE] = 60
         self.test.update()
         self.test.debug_input_value[self.test.PIN_I_NUPDATERATE] = 0
+
+    def test_mult_update(self):
+        print("\n### test_mult_update (! combines several other testcases !)")
+        self.test.debug_input_value[self.test.PIN_I_NON] = 1
+        self.test.debug_input_value[self.test.PIN_I_NUPDATERATE] = 3
+        self.test.on_init()
+        res = self.test.debug_output_value[self.test.PIN_O_SALLWARNINGS]
+        self.assertTrue(res)
+        self.test.reset_outputs()
+        time.sleep(5)
+        res = self.test.debug_output_value[self.test.PIN_O_SALLWARNINGS]
+        self.assertTrue(res)
+
+    def test_stop(self):
+        print("\n### test_stop (! combines several other testcases !)")
+        self.test.debug_input_value[self.test.PIN_I_NON] = 1
+        self.test.debug_input_value[self.test.PIN_I_NUPDATERATE] = 3
+        self.test.on_init()
+        self.test.reset_outputs()
+        self.test.debug_input_value[self.test.PIN_I_NON] = 0
+        time.sleep(5)
+        res = self.test.debug_output_value[self.test.PIN_O_SALLWARNINGS]
+        self.assertFalse(res)
 
     def test_get_json(self):
         print("\n### test_get_json")
@@ -404,6 +439,23 @@ class TestSequenceFunctions(unittest.TestCase):
 
         self.test.read_detailed_json(json_data)
         self.assertTrue(True)
+
+    def test_error_ags(self):
+        print("\n### test_error_ags")
+        self.test.debug_input_value[self.test.PIN_I_SAGS] = "125"
+        self.test.on_input_value(self.test.PIN_I_SAGS, "123")
+        symbol_url = self.test.debug_output_value[self.test.PIN_O_SEVENTSYMBOLURL]
+        print(symbol_url)
+        self.assertTrue(symbol_url == "0")
+
+    def test_error_json(self):
+        print("\n### test_error_json")
+        ret = self.test.read_json("")
+        self.assertFalse(ret)
+
+    def tearDown(self):
+        print("\n### tearDown")
+        self.test.debug_input_value[self.test.PIN_I_NON] = 0
 
 
 if __name__ == '__main__':
