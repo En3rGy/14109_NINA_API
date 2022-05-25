@@ -35,17 +35,177 @@ class NINAAPI_14109_14109(hsl20_4.BaseModule):
 #### Own written code can be placed after this commentblock . Do not change or delete commentblock! ####
 ###################################################################################################!!!##
 
-    # Warnungen vor extremem Unwetter (Stufe 4) - lila
-    # Unwetterwarnungen (Stufe 3) -> rot
-    # Warnungen vor markantem Wetter (Stufe 2) -> orange
-    # Wetterwarnungen (Stufe 1) -> gelb
-    # Vorabinformation Unwetter -> rot gestreift
-    # Hitzewarnung (extrem) -> dunkles flieder -> LEvel +20
-    # Hitzewarnung -> helles flieder -> Level +20
-    # UV - Warnung -> rosa -> Level 20
-    # Keine Warnungen -> ---
+    # Warnungen vor extremem Unwetter (Stufe 4) → lila
+    # Unwetterwarnungen (Stufe 3) → rot
+    # Warnungen vor markantem Wetter (Stufe 2) → orange
+    # Wetterwarnungen (Stufe 1) → gelb
+    # Vorabinformation Unwetter → rot gestreift
+    # Hitzewarnung (extrem) → dunkles flieder → Level +20
+    # Hitzewarnung → helles flieder → Level +20
+    # UV - Warnung → rosa → Level 20
+    # Keine Warnungen → ---
 
     severity = {"Vorwarnung": 1, "Minor": 2, "Moderate": 3, "Severe": 4, "Extreme": 5}
+
+    class Warning:
+        def __init__(self):
+            self.warning_json = {}  # type: {str, any}
+            self.headline = str()  # type: str
+            self.severity = str()  # type: str
+            self.severity_id = -1  # type: int
+            self.id = str()  # type: str
+            self.effective = str()  # type: str
+            self.expires = str()  # type: str
+            self.status = str()  # type: str
+            self.description = str()  # type: str
+            self.instruction = str()  # type: str
+            self.event_code = str()  # type: str
+            self.symbol_url = str()  # type: str
+            self.event_id = -1  # type: int
+            self.severity_lookup = {"Vorwarnung": 1, "Minor": 2, "Moderate": 3, "Severe": 4, "Extreme": 5}
+
+        def __str__(self):
+            return str("\n-------------\n" +
+                       "headline:    " + self.headline.encode('ascii', 'ignore') + "\n" +
+                       "severity:    " + self.severity.encode('ascii', 'ignore') + " / " +
+                       str(self.severity_id) + "\n" +
+                       "id:          " + self.id.encode('ascii', 'ignore') + "\n" +
+                       "effective:   " + self.effective.encode('ascii', 'ignore') + "\n" +
+                       "expires:     " + self.expires.encode('ascii', 'ignore') + "\n" +
+                       "status:      " + self.status.encode('ascii', 'ignore') + "\n" +
+                       "description: " + self.description.encode('ascii', 'ignore') + "\n" +
+                       "instruction: " + self.instruction.encode('ascii', 'ignore') + "\n" +
+                       "event_code:  " + self.event_code.encode('ascii', 'ignore') + "\n" +
+                       "symbol url:  " + self.symbol_url + "\n" +
+                       "event_id:    " + str(self.event_id))
+
+        def __le__(self, other):
+            # <=
+            return self.severity_id <= other.severity_id
+
+        def __lt__(self, other):
+            # <
+            return self.severity_id < other.severity_id
+
+        def __ge__(self, other):
+            # >=
+            return self.severity_id >= other.severity_id
+
+        def __gt__(self, other):
+            # >
+            return self.severity_id > other.severity_id
+
+        def __eq__(self, other):
+            # ==
+            return (self.warning_json == other.warning_json and
+                    self.headline == other.headline and
+                    self.severity == other.severity and
+                    self.severity_id == other.severity_id and
+                    self.id == other.id and
+                    self.effective == other.effective and
+                    self.expires == other.expires and
+                    self.status == other.status and
+                    self.description == other.description and
+                    self.instruction == other.instruction and
+                    self.event_code == other.event_code and
+                    self.symbol_url == other.symbol_url and
+                    self.event_id == other.event_id)
+
+        def __ne__(self, other):
+            # !=
+            return (self.warning_json != other.warning_json or
+                    self.headline != other.headline or
+                    self.severity != other.severity or
+                    self.severity_id != other.severity_id or
+                    self.id != other.id or
+                    self.effective != other.effective or
+                    self.expires != other.expires or
+                    self.status != other.status or
+                    self.description != other.description or
+                    self.instruction != other.instruction or
+                    self.event_code != other.event_code or
+                    self.symbol_url != other.symbol_url or
+                    self.event_id != other.event_id)
+
+        def get_val(self, json_data, key, do_xmlcharrefreplace=True):
+            # type : (json, str, bool) -> any
+            val = str()
+
+            if type(json_data) != dict:
+                return val
+
+            if key in json_data:
+                val = json_data[key]
+            if (type(val) == str or type(val) == unicode) and do_xmlcharrefreplace:
+                val = val.encode("ascii", "xmlcharrefreplace")
+            return val
+
+        def set_detailed_warning(self, detailed_warning_json):
+            # type: ({}) -> bool
+
+            if type(detailed_warning_json) == str:
+                try:
+                    detailed_warning_json = json.loads(detailed_warning_json)
+                except Exception as e:
+                    return False
+
+            self.status = self.get_val(detailed_warning_json, "status")
+            info = self.get_val(detailed_warning_json, "info")  # type: any
+
+            if type(info) == list and len(info) == 1:
+                info = info[0]
+
+            if type(info) != dict:
+                return False
+
+            if "eventCode" in info:
+                if len(info["eventCode"]) == 1:
+                    self.event_code = self.get_val(info["eventCode"][0], "value")
+                    self.symbol_url = "https://nina.api.proxy.bund.dev/api31/appdata/gsb/eventCodes/" + \
+                                      self.event_code + ".png"
+
+                    if "EVC" in self.event_code:
+                        self.event_id = int(self.event_code[len(self.event_code) - 3:])
+                    else:
+                        self.event_id = 1
+
+            self.description = self.get_val(info, "description")
+            self.instruction = self.get_val(info, "instruction")
+
+            return True
+
+        def set_warning(self, warning_json):
+            # type: (json) -> str
+
+            if type(warning_json) == str:
+                try:
+                    warning_json = json.loads(warning_json)
+                except Exception as e:
+                    return str()
+
+            self.warning_json = warning_json
+
+            self.id = self.get_val(warning_json, "id")
+            self.expires = self.get_val(warning_json, "expires")
+            self.effective = self.get_val(warning_json, "effective")
+
+            if "payload" not in warning_json:
+                return str()
+
+            payload = warning_json["payload"]
+            if "data" in payload:
+                data = payload["data"]
+
+                self.headline = self.get_val(data, "headline")
+                self.severity = self.get_val(data, "severity")
+                if self.severity in self.severity_lookup:
+                    self.severity_id = self.severity_lookup[self.severity]
+
+            if "id" in payload:
+                payload_id = payload["id"]
+                return payload_id
+
+            return str()
 
     def set_output_value_sbc(self, pin, val):
         if pin in self.g_out_sbc:
@@ -57,6 +217,8 @@ class NINAAPI_14109_14109(hsl20_4.BaseModule):
         self.g_out_sbc[pin] = val
 
     def get_data(self, warning_id=str()):
+        # type: (str) -> str
+
         if warning_id:
             url_parsed = urlparse.urlparse("https://nina.api.proxy.bund.dev/api31/warnings/")
         else:
@@ -89,143 +251,6 @@ class NINAAPI_14109_14109(hsl20_4.BaseModule):
         finally:
             return response_data
 
-    def read_json(self, json_data):
-        try:
-            warnings_data = json.loads(json_data)
-
-        except Exception as e:
-            ags = self._get_input_value(self.PIN_I_SAGS)  # type : str
-            self.DEBUG.add_message("14109 " + str(ags) + ": " + str(e))
-            return
-
-        self.set_output_value_sbc(self.PIN_O_SJSON, json_data)
-        warnings_cnt = len(warnings_data)
-        self.DEBUG.set_value("Warnings for " + str(self._get_input_value(self.PIN_I_SAGS)), warnings_cnt)
-
-        if warnings_cnt == 0:
-            self.DEBUG.add_message("14109 " + str(self._get_input_value(self.PIN_I_SAGS)) + ": No warn data available.")
-            self.reset_outputs()
-            return
-
-        all_warnings = self.get_all_warnings(warnings_data)
-        if all_warnings:
-            self.set_output_value_sbc(self.PIN_O_SALLWARNINGS, all_warnings.encode("ascii", "xmlcharrefreplace"))
-        else:
-            self.DEBUG.add_message("14109 " + str(self._get_input_value(self.PIN_I_SAGS)) + ": No warn data available.")
-            self.reset_outputs()
-            return
-
-        # find worst warning
-        worst_data = {}
-        max_level = 0
-        for i in range(0, warnings_cnt):
-            try:
-                if "payload" in warnings_data[i]:
-                    payload = warnings_data[i]["payload"]
-                    if "data" in payload:
-                        data = payload["data"]
-                        severity = self.get_val(data, "severity")
-                        level = 0
-
-                        if severity in self.severity:
-                            level = self.severity[severity]
-                        else:
-                            level = -100
-
-                        if level > max_level:
-                            max_level = level
-                            worst_data = payload["data"]
-                            worst_data["warning_id"] = self.get_val(payload, "id")
-
-                        worst_data["LEVEL"] = max_level
-
-            finally:
-                pass
-
-        headline = worst_data["headline"]  # type : str
-        level = worst_data["LEVEL"]
-        if headline:
-            self.set_output_value_sbc(self.PIN_O_SHEADLINE, headline.encode("ascii", "xmlcharrefreplace"))
-        if level:
-            self.set_output_value_sbc(self.PIN_O_NSEVERITY, level)
-
-        return worst_data
-
-    def complete_worst_warning_data(self, worst_data):
-        warning_id = worst_data["warning_id"]
-        if warning_id:
-            full_warning = self.get_data(warning_id)
-            if not full_warning:
-                self.reset_outputs()
-                return
-
-            self.read_detailed_json(full_warning)
-            return full_warning
-
-    def read_detailed_json(self, full_warning):
-        full_warning = json.loads(full_warning)
-        if not full_warning:
-            return
-
-        if "info" not in full_warning:
-            return
-
-        info = full_warning["info"]
-        if len(info) == 1:
-            info = info[0]
-        else:
-            print("Something went wrong")
-            return
-
-        # "category": [ "Fire", "Infra" ]
-        # "event"
-
-        urgency = self.get_val(info, "urgency")
-        certainty = self.get_val(info, "certainty")
-        description = self.get_val(info, "description")
-        instruction = self.get_val(info, "instruction")
-
-        if urgency:
-            self.set_output_value_sbc(self.PIN_O_SURGENCY, urgency.encode("ascii", "xmlcharrefreplace"))
-        if certainty:
-            self.set_output_value_sbc(self.PIN_O_SCERTAINTY, certainty.encode("ascii", "xmlcharrefreplace"))
-        if description:
-            self.set_output_value_sbc(self.PIN_O_SDESCR, description.encode("ascii", "xmlcharrefreplace"))
-        if instruction:
-            self.set_output_value_sbc(self.PIN_O_SINSTR, instruction.encode("ascii", "xmlcharrefreplace"))
-
-        if "eventCode" in info:
-            if len(info["eventCode"]) > 0:
-                event_code = self.get_val(info["eventCode"][0], "value")
-                if "EVC" in event_code:
-                    event_id = int(event_code[len(event_code)-3:])
-                else:
-                    event_id = 1
-
-                event_url = "https://nina.api.proxy.bund.dev/api31/appdata/gsb/eventCodes/" + event_code + ".png"
-                self.set_output_value_sbc(self.PIN_O_NEVENTID, event_id)
-                self.set_output_value_sbc(self.PIN_O_SEVENTSYMBOLURL, event_url)
-
-    def get_val(self, json_data, key):  # type : str
-        val = ""
-        if key in json_data:
-            val = json_data[key]
-        return val
-
-    def get_all_warnings(self, warnings_data):  # type : str
-        msg = ""
-
-        for i in range(0, len(warnings_data)):
-            warning = warnings_data[i]
-            if "payload" in warning:
-                if "data" in warning["payload"]:
-                    payload = warning["payload"]["data"]
-                    msg += self.get_val(payload, "headline")
-                    if i < len(warnings_data) - 1:
-                        msg += ", "
-
-        return msg
-
     def reset_outputs(self):
         self.DEBUG.add_message("14109 " + str(self._get_input_value(self.PIN_I_SAGS)) + ": Delete warn data.")
         self.set_output_value_sbc(self.PIN_O_SALLWARNINGS, "")
@@ -239,39 +264,99 @@ class NINAAPI_14109_14109(hsl20_4.BaseModule):
         self.set_output_value_sbc(self.PIN_O_NEVENTID, "")
         self.set_output_value_sbc(self.PIN_O_SEVENTSYMBOLURL, "0")
 
+    def log_msg(self, msg):
+        # type: (str) -> None
+        self.DEBUG.add_message("14109 " + str(self._get_input_value(self.PIN_I_SAGS)) + ": " + str(msg))
+
     def update(self):
+        # type: () -> None
         if not bool(self._get_input_value(self.PIN_I_NON)):
+            self.log_msg("in 'update' stopping timer due to on = False.")
+            self.t.cancel()
             return
 
         interval = self._get_input_value(self.PIN_I_NUPDATERATE)
         if interval <= 0:
+            self.log_msg("in 'update' stopping timer due to interval <= 0.")
+            self.t.cancel()
             return
 
-        try:
-            self.DEBUG.add_message("14109 " + str(self._get_input_value(self.PIN_I_SAGS)) + ": Requesting NINA data.")
-            data = self.get_data()
-            if not data:
-                self.reset_outputs()
-            else:
-                worst_data = self.read_json(data)
-                if worst_data:
-                    self.complete_worst_warning_data(worst_data)
+        warnings = []  # type: [Warning]
 
-        finally:
-            threading.Timer(interval, self.update).start()
+        self.log_msg("Requesting NINA data.")
+        data = self.get_data()
+        if not data:
+            self.reset_outputs()
+        else:
+            try:
+                data = json.loads(data)
+            except Exception as e:
+                self.log_msg("In 'update' " + str(e))
+                return
+
+            for warning in data:
+                w = self.Warning()
+                warning_id = w.set_warning(warning)
+                if warning_id:
+                    detailed_data = self.get_data(warning_id)
+                    w.set_detailed_warning(detailed_data)
+                warnings.append(w)
+
+            res = []  # type: [Warning]
+            for i in warnings:
+                if i not in res:
+                    res.append(i)
+
+            warnings = res
+
+            warnings = self.bubble_sort(warnings)
+            worst_warning = warnings[-1]
+
+            # remove duplicates from headlines
+            all_warnings = []
+            for i in warnings:
+                if i.headline not in all_warnings:
+                    all_warnings.append(i.headline)
+
+            all_warnings_text = str()
+            for i in all_warnings:
+                all_warnings_text = str(i) + all_warnings_text
+                all_warnings_text = ", " + all_warnings_text
+
+            all_warnings_text = all_warnings_text[2:]
+
+            # self.id = str()  # type: str
+            # self.effective = str()  # type: str
+            # self.expires = str()  # type: str
+            # self.status = str()  # type: str
+
+            self.set_output_value_sbc(self.PIN_O_SJSON, worst_warning.warning_json)
+            self.set_output_value_sbc(self.PIN_O_SDESCR, worst_warning.description)
+            self.set_output_value_sbc(self.PIN_O_SINSTR, worst_warning.instruction)
+            self.set_output_value_sbc(self.PIN_O_NEVENTID, worst_warning.event_id)
+            self.set_output_value_sbc(self.PIN_O_NSEVERITY, worst_warning.severity)
+            self.set_output_value_sbc(self.PIN_O_SURGENCY, worst_warning.severity_id)
+            self.set_output_value_sbc(self.PIN_O_SHEADLINE, worst_warning.headline)
+            self.set_output_value_sbc(self.PIN_O_SEVENTSYMBOLURL, worst_warning.symbol_url)
+            self.set_output_value_sbc(self.PIN_O_SALLWARNINGS, all_warnings_text)
+
+            self.t = threading.Timer(interval, self.update)
+            self.t.start()
+
+    def bubble_sort(self, w):
+        # type: ([]) -> []
+        for n in range(len(w) - 1, 1, -1):
+            for i in range(0, len(w) - 1):
+                if w[i] > w[i + 1]:
+                    w[i], w[i + 1] = w[i + 1], w[i]
+        return w
 
     def on_init(self):
         self.DEBUG = self.FRAMEWORK.create_debug_section()
-        self.g_out_sbc = {}
+        self.g_out_sbc = {}  # type: dict
+        self.t = threading.Timer(100, self.update)  # type: threading.Timer
 
         self.update()
 
     def on_input_value(self, index, value):
-        if not bool(self._get_input_value(self.PIN_I_NON)):
-            return
-
-        # get json date if triggered
-        if (index == self.PIN_I_NUPDATERATE) and value == 0:
-            return
-
         self.update()

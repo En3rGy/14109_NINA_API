@@ -4,29 +4,31 @@
 
 Baustein zum Abruf von Warnmeldungen über die <a href="https://nina.api.bund.dev/">NINA API</a> des Bundesamt für Bevölkerungsschutz</p>
 
+Alle Ausgänge sind als Send-by-Change (sbc) ausgeführt.
+
 ## Inputs
 
-| No. | Name | Initialisation | Description |
-| --- | --- | --- | --- |
-| 1 | Amtlicher Gebietsschlüssel | "" | Amtlicher Gebietsschlüssel, kann z.B. <a href="">hier</a> bezogen werden. Die Letzten 7 Stellen müssen mit "0000000" ersetzt werden, da Daten nur auf Kreisebene bereitgestellt werden. |
-| 2 | Update-Rate (s) | 307 | Intervall in Sekunden, in dem der BBK-Server nach neuen Warnungen abgefragt wird. |
-| 3 | Ein/Aus | 1 | Bei 1 arbeitet der Bautein, bei 0 nicht |
+| No. | Name                       | Initialisation | Description                                                                                                                                                                                                                |
+|-----|----------------------------|----------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 1   | Amtlicher Gebietsschlüssel | ""             | Amtlicher Gebietsschlüssel, kann z.B. <a href="https://www.orte-in-deutschland.de/">hier</a> bezogen werden. Die Letzten 7 Stellen müssen mit "0000000" ersetzt werden, da Daten nur auf Kreisebene bereitgestellt werden. |
+| 2   | Update-Rate (s)            | 307            | Intervall in Sekunden, in dem der BBK-Server nach neuen Warnungen abgefragt wird.                                                                                                                                          |
+| 3   | Ein/Aus                    | 1              | Bei 1 arbeitet der Bautein, bei 0 nicht                                                                                                                                                                                    |
 
 
 ## Ausgänge
 
-| No. | Name | Initialisation | Description |
-| --- | --- | --- | --- |
-| 1 | Alle Warnungen | "" | Text mit allen aktuell vorliegenden Warnungen |
-| 2 | Meldung | "" | Kritischste Warnung |
-| 3 | Schweregrad | 0 | Schweregrad der kritischsten Meldung |
-| 4 | Dringlichkeit | "" | Dringlichkeit der kritischsten Meldung |
-| 5 | Gewissheit | 0 | Sicherheit / Gewissheit der kritischsten Meldung |
-| 6 | Beschriebung | 0 | Beschreibung der kritischsten Meldung |
-| 7 | Anleitung | 0 | Verhaltensanweisung zur kritischsten Meldung |
-| 8 | Symbol-Id | 0 | Id des Symbols für die kritischste Meldung<br>Grundlage für die Id ist der EVent Code. das BBK bietet Symbole für folgende Event Codes BBK-EVC-?, wobei das ? eine 3-stellige Zahl ersetzt. Für den Event Code BBK-EVC-004 liefert der Baustein bspw. die Id 4.<br>1 = Std. Symbol, bzw. Event Code nicht von der Art BBK-EVC<br>0 = Keine Meldung. |
-| 9 | Symbol-URL | "" | URL zum BBK Symbol des Events |
-| 10 | Json | 0 | Json-Meldung zu den empfangenen Warnungen |
+| No. | Name           | Initialisation | Description                                                                                                                                                                                                                                                                                                                                         |
+|-----|----------------|----------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 1   | Alle Warnungen | ""             | Text mit allen aktuell vorliegenden Warnungen                                                                                                                                                                                                                                                                                                       |
+| 2   | Meldung        | ""             | Kritischste Warnung                                                                                                                                                                                                                                                                                                                                 |
+| 3   | Schweregrad    | 0              | Schweregrad der kritischsten Meldung                                                                                                                                                                                                                                                                                                                |
+| 4   | Dringlichkeit  | ""             | Dringlichkeit der kritischsten Meldung                                                                                                                                                                                                                                                                                                              |
+| 5   | Gewissheit     | 0              | Sicherheit / Gewissheit der kritischsten Meldung                                                                                                                                                                                                                                                                                                    |
+| 6   | Beschriebung   | 0              | Beschreibung der kritischsten Meldung                                                                                                                                                                                                                                                                                                               |
+| 7   | Anleitung      | 0              | Verhaltensanweisung zur kritischsten Meldung                                                                                                                                                                                                                                                                                                        |
+| 8   | Symbol-Id      | 0              | Id des Symbols für die kritischste Meldung<br>Grundlage für die Id ist der EVent Code. das BBK bietet Symbole für folgende Event Codes BBK-EVC-?, wobei das ? eine 3-stellige Zahl ersetzt. Für den Event Code BBK-EVC-004 liefert der Baustein bspw. die Id 4.<br>1 = Std. Symbol, bzw. Event Code nicht von der Art BBK-EVC<br>0 = Keine Meldung. |
+| 9   | Symbol-URL     | ""             | URL zum BBK Symbol des Events                                                                                                                                                                                                                                                                                                                       |
+| 10  | Json           | 0              | Json-Meldung zu den empfangenen Warnungen                                                                                                                                                                                                                                                                                                           |
 
 ## Sonstiges
 
@@ -37,6 +39,11 @@ Baustein zum Abruf von Warnmeldungen über die <a href="https://nina.api.bund.de
 
 ### Change Log
 
+- v0.04
+  - Refactoring
+  - Ausgänge sbc
+  - Bugfix: Doppelte Warnungen entfernt
+  - Bugfix: Jetzt wird die schlimmste Warnung ausgegeben
 - v0.03
   - Bug: Crash bei Wiederholung nach 1. Timeout behoben
   - Bug: Reset der Ausgänge bei fehlender Warnung korrigiert
@@ -75,8 +82,7 @@ Der Python-Code des Bausteins befindet sich in der hslz Datei oder auf [github](
 5. Der Baustein soll bei empfangenen Warnungen, die bedeutendste Warnung bestimmen. 
 6. Der Baustein soll bei empfangenen Warnungen, für die bedeutendste Warnung die Headline ausgeben. 
 7. Der Baustein soll bei empfangenen Warnungen, für die bedeutendste Warnung die Description ausgeben. 
-8. Der Baustein soll bei empfangenen Warnungen, für die bedeutendste Warnung die Instruction ausgeben. 
-9. 
+8. Der Baustein soll bei empfangenen Warnungen, für die bedeutendste Warnung die Instruction ausgeben.
 
 ## Software Design Description
 
