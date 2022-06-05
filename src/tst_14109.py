@@ -338,7 +338,7 @@ class NINAAPI_14109_14109(hsl20_4.BaseModule):
             response_data = response.read()
 
         except Exception as e:
-            self.DEBUG.add_message("14109 " + str(ags) + ": " + str(e) + " for '" + url_resolved + "'")
+            self.DEBUG.add_message("14109 " + str(ags) + ": In 'get_data', " + str(e) + " for '" + url_resolved + "'")
 
         finally:
             return response_data
@@ -432,8 +432,8 @@ class NINAAPI_14109_14109(hsl20_4.BaseModule):
             self.set_output_value_sbc(self.PIN_O_SEVENTSYMBOLURL, worst_warning.symbol_url)
             self.set_output_value_sbc(self.PIN_O_SALLWARNINGS, all_warnings_text)
 
-            self.t = threading.Timer(interval, self.update)
-            self.t.start()
+        self.t = threading.Timer(interval, self.update)
+        self.t.start()
 
     def bubble_sort(self, w):
         # type: ([]) -> []
@@ -524,7 +524,7 @@ class TestSequenceFunctions(unittest.TestCase):
         res = self.test.debug_output_value[self.test.PIN_O_SALLWARNINGS]
         self.assertTrue(res)
         self.test.reset_outputs()
-        time.sleep(5)
+        time.sleep(8)
         res = self.test.debug_output_value[self.test.PIN_O_SALLWARNINGS]
         self.assertTrue(res)
 

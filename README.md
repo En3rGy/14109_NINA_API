@@ -39,6 +39,8 @@ Alle Ausgänge sind als Send-by-Change (sbc) ausgeführt.
 
 ### Change Log
 
+- v0.05
+  - Fixed bug: Abfrage Timer beendet, wenn keine Daten abgerufen werden können.
 - v0.04
   - Refactoring
   - Ausgänge sbc
