@@ -246,6 +246,11 @@ class NINAAPI_14109_14109(hsl20_4.BaseModule):
 
             if type(info) == list and len(info) == 1:
                 info = info[0]
+            elif type(info) == list and len(info) != 1:
+                for i in info:
+                    if "de" in self.get_val(i, "language"):
+                        info = i
+                        break
 
             if type(info) != dict:
                 return False
@@ -253,13 +258,16 @@ class NINAAPI_14109_14109(hsl20_4.BaseModule):
             if "eventCode" in info:
                 if len(info["eventCode"]) == 1:
                     self.event_code = self.get_val(info["eventCode"][0], "value")
-                    self.symbol_url = "https://nina.api.proxy.bund.dev/api31/appdata/gsb/eventCodes/" + \
-                                      self.event_code + ".png"
+            else:
+                self.event_code = "BBK-EVC-001"
 
-                    if "EVC" in self.event_code:
-                        self.event_id = int(self.event_code[len(self.event_code) - 3:])
-                    else:
-                        self.event_id = 1
+            self.symbol_url = "https://nina.api.proxy.bund.dev/api31/appdata/gsb/eventCodes/" + \
+                              self.event_code + ".png"
+
+            if "EVC" in self.event_code:
+                self.event_id = int(self.event_code[len(self.event_code) - 3:])
+            else:
+                self.event_id = 1
 
             self.description = self.get_val(info, "description")
             self.instruction = self.get_val(info, "instruction")
@@ -400,9 +408,19 @@ class NINAAPI_14109_14109(hsl20_4.BaseModule):
                     res.append(i)
 
             warnings = res
-
             warnings = self.bubble_sort(warnings)
-            worst_warning = warnings[-1]
+            worst_warning = Warning()
+            if len(warnings) > 0:
+                worst_warning = warnings[-1]
+            else:
+                worst_warning.warning_json = str()
+                worst_warning.description = str()
+                worst_warning.instruction = str()
+                worst_warning.event_id = str()
+                worst_warning.severity = str()
+                worst_warning.severity_id = str()
+                worst_warning.headline = str()
+                worst_warning.symbol_url = str()
 
             # remove duplicates from headlines
             all_warnings = []
@@ -415,7 +433,8 @@ class NINAAPI_14109_14109(hsl20_4.BaseModule):
                 all_warnings_text = str(i) + all_warnings_text
                 all_warnings_text = ", " + all_warnings_text
 
-            all_warnings_text = all_warnings_text[2:]
+            if len(all_warnings_text) > 2:
+                all_warnings_text = all_warnings_text[2:]
 
             # self.id = str()  # type: str
             # self.effective = str()  # type: str

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <config>
     <modules>
-        <module category="Datenaustausch" context="hsl20_4_NINA_API" id="14109" name="NINA API (14109)" version="0.05">
+        <module category="Datenaustausch" context="hsl20_4_NINA_API" id="14109" name="NINA API (14109)" version="0.07">
             <inputs>
 				<input type="string" const_name="sAGS" init_value="">1: Amtlicher Gebietsschlüssel</input>
 				<input type="number" const_name="nUpdateRate" init_value="307">2: Update-Rate (s)</input>

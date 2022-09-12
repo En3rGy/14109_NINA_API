@@ -39,6 +39,10 @@ Alle Ausgänge sind als Send-by-Change (sbc) ausgeführt.
 
 ### Change Log
 
+- v0.07
+  - Bug: Exception, wenn keine Warnung vorliegt
+- v0.06
+  - Impr.: Set default event code (& symbol url) in case no event code could be received
 - v0.05
   - Fixed bug: Abfrage Timer beendet, wenn keine Daten abgerufen werden können.
 - v0.04
