@@ -127,16 +127,32 @@ class NINAAPI_14109_14109(hsl20_4.BaseModule):
                     self.event_id != other.event_id)
 
         def get_val(self, json_data, key, do_xmlcharrefreplace=True):
-            # type : (json, str, bool) -> any
-            val = str()
+            # type : (dict, str, bool) -> any
+            """
+            Retrieve the value associated with the given key from a JSON dictionary.
 
-            if type(json_data) != dict:
+            Args:
+                json_data (dict): The JSON dictionary to search.
+                key (str): The key whose value is to be retrieved.
+                do_xmlcharrefreplace (bool): Whether to replace XML character references.
+
+            Returns:
+                any: The value associated with the key, with optional XML character reference replacement.
+            """
+            # Initialize an empty string as the default value
+            val = ""
+
+            # Check if the input is a dictionary
+            if not isinstance(json_data, dict):
                 return val
 
-            if key in json_data:
-                val = json_data[key]
-            if (type(val) == str or type(val) == unicode) and do_xmlcharrefreplace:
+            # Retrieve the value associated with the key if it exists
+            val = json_data.get(key, "")
+
+            # Check if the value is a string or unicode, and replace XML character references if needed
+            if isinstance(val, (str, unicode)) and do_xmlcharrefreplace:
                 val = val.encode("ascii", "xmlcharrefreplace")
+
             return val
 
         def set_detailed_warning(self, detailed_warning_json):
@@ -162,14 +178,22 @@ class NINAAPI_14109_14109(hsl20_4.BaseModule):
             if type(info) != dict:
                 return False
 
+            if "senderName" in info:
+                if str(info["senderName"]) == "Deutscher Wetterdienst":
+                    raise Exception("Received DWD warning. Aborting. "
+                                    "Use other logic module to capture weather warnings!")
+
             if "eventCode" in info:
                 if len(info["eventCode"]) == 1:
                     self.event_code = self.get_val(info["eventCode"][0], "value")
             else:
                 self.event_code = "BBK-EVC-001"
 
-            self.symbol_url = "https://nina.api.proxy.bund.dev/api31/appdata/gsb/eventCodes/" + \
-                              self.event_code + ".png"
+            if self.event_code == "":
+                self.symbol_url = ""
+            else:
+                self.symbol_url = "https://nina.api.proxy.bund.dev/api31/appdata/gsb/eventCodes/" + \
+                                  self.event_code + ".png"
 
             if "EVC" in self.event_code:
                 self.event_id = int(self.event_code[len(self.event_code) - 3:])
@@ -278,13 +302,13 @@ class NINAAPI_14109_14109(hsl20_4.BaseModule):
     def update(self):
         # type: () -> None
         if not bool(self._get_input_value(self.PIN_I_NON)):
-            self.log_msg("in 'update' stopping timer due to on = False.")
+            self.log_msg("in 'update' stopping timer due to input ON == False.")
             self.t.cancel()
             return
 
         interval = self._get_input_value(self.PIN_I_NUPDATERATE)
         if interval <= 0:
-            self.log_msg("in 'update' stopping timer due to interval <= 0.")
+            self.log_msg("in 'update' stopping timer due to input INTERVAL <= 0.")
             self.t.cancel()
             return
 
@@ -297,66 +321,44 @@ class NINAAPI_14109_14109(hsl20_4.BaseModule):
         else:
             try:
                 data = json.loads(data)
+
+                for warning in data:
+                    w = self.Warning()
+                    warning_id = w.set_warning(warning)
+                    if warning_id:
+                        try:
+                            detailed_data = self.get_data(warning_id)
+                            ret = w.set_detailed_warning(detailed_data)
+                        except Exception as e:
+                            self.log_msg("update | Exception {}. Continuing with next warning.".format(e))
+                            continue
+
+                    if not w in warnings:
+                        warnings.append(w)
+
+                warnings = self.bubble_sort(warnings)
+                worst_warning = Warning()
+                if len(warnings) > 0:
+                    worst_warning = warnings[-1]
+
+                # Remove duplicates from headlines and concatenate them into a single string
+                # Use a set to store unique headlines and join the unique headlines with ", " separator
+                unique_headlines = set(i.headline for i in warnings)
+                all_warnings_text = ", ".join(unique_headlines)
+
+                print(all_warnings_text)
+
+                self.set_output_value_sbc(self.PIN_O_SJSON, worst_warning.warning_json)
+                self.set_output_value_sbc(self.PIN_O_SDESCR, worst_warning.description)
+                self.set_output_value_sbc(self.PIN_O_SINSTR, worst_warning.instruction)
+                self.set_output_value_sbc(self.PIN_O_NEVENTID, worst_warning.event_id)
+                self.set_output_value_sbc(self.PIN_O_NSEVERITY, worst_warning.severity)
+                self.set_output_value_sbc(self.PIN_O_SURGENCY, str(worst_warning.severity_id))
+                self.set_output_value_sbc(self.PIN_O_SHEADLINE, worst_warning.headline)
+                self.set_output_value_sbc(self.PIN_O_SEVENTSYMBOLURL, worst_warning.symbol_url)
+                self.set_output_value_sbc(self.PIN_O_SALLWARNINGS, all_warnings_text)
             except Exception as e:
                 self.log_msg("In 'update' " + str(e))
-                return
-
-            for warning in data:
-                w = self.Warning()
-                warning_id = w.set_warning(warning)
-                if warning_id:
-                    detailed_data = self.get_data(warning_id)
-                    w.set_detailed_warning(detailed_data)
-                warnings.append(w)
-
-            res = []  # type: [Warning]
-            for i in warnings:
-                if i not in res:
-                    res.append(i)
-
-            warnings = res
-            warnings = self.bubble_sort(warnings)
-            worst_warning = Warning()
-            if len(warnings) > 0:
-                worst_warning = warnings[-1]
-            else:
-                worst_warning.warning_json = str()
-                worst_warning.description = str()
-                worst_warning.instruction = str()
-                worst_warning.event_id = str()
-                worst_warning.severity = str()
-                worst_warning.severity_id = str()
-                worst_warning.headline = str()
-                worst_warning.symbol_url = str()
-
-            # remove duplicates from headlines
-            all_warnings = []
-            for i in warnings:
-                if i.headline not in all_warnings:
-                    all_warnings.append(i.headline)
-
-            all_warnings_text = str()
-            for i in all_warnings:
-                all_warnings_text = str(i) + all_warnings_text
-                all_warnings_text = ", " + all_warnings_text
-
-            if len(all_warnings_text) > 2:
-                all_warnings_text = all_warnings_text[2:]
-
-            # self.id = str()  # type: str
-            # self.effective = str()  # type: str
-            # self.expires = str()  # type: str
-            # self.status = str()  # type: str
-
-            self.set_output_value_sbc(self.PIN_O_SJSON, worst_warning.warning_json)
-            self.set_output_value_sbc(self.PIN_O_SDESCR, worst_warning.description)
-            self.set_output_value_sbc(self.PIN_O_SINSTR, worst_warning.instruction)
-            self.set_output_value_sbc(self.PIN_O_NEVENTID, worst_warning.event_id)
-            self.set_output_value_sbc(self.PIN_O_NSEVERITY, worst_warning.severity)
-            self.set_output_value_sbc(self.PIN_O_SURGENCY, worst_warning.severity_id)
-            self.set_output_value_sbc(self.PIN_O_SHEADLINE, worst_warning.headline)
-            self.set_output_value_sbc(self.PIN_O_SEVENTSYMBOLURL, worst_warning.symbol_url)
-            self.set_output_value_sbc(self.PIN_O_SALLWARNINGS, all_warnings_text)
 
         self.t = threading.Timer(interval, self.update)
         self.t.start()
@@ -378,4 +380,3 @@ class NINAAPI_14109_14109(hsl20_4.BaseModule):
 
     def on_input_value(self, index, value):
         self.update()
-
