@@ -158,11 +158,8 @@ class NINAAPI_14109_14109(hsl20_4.BaseModule):
         def set_detailed_warning(self, detailed_warning_json):
             # type: ({}) -> bool
 
-            if type(detailed_warning_json) == str:
-                try:
-                    detailed_warning_json = json.loads(detailed_warning_json)
-                except Exception as e:
-                    return False
+            if isinstance(detailed_warning_json, (str, unicode)):
+                detailed_warning_json = json.loads(detailed_warning_json)
 
             self.status = self.get_val(detailed_warning_json, "status")
             info = self.get_val(detailed_warning_json, "info")  # type: any
@@ -175,11 +172,12 @@ class NINAAPI_14109_14109(hsl20_4.BaseModule):
                         info = i
                         break
 
-            if type(info) != dict:
-                return False
+            if not isinstance(info, dict):
+                raise Exception("set_detailed_warning | Not a dict. Aborting")
 
             if "senderName" in info:
-                if str(info["senderName"]) == "Deutscher Wetterdienst":
+                sender_name = self.get_val(info, "senderName")
+                if sender_name == "Deutscher Wetterdienst":
                     raise Exception("Received DWD warning. Aborting. "
                                     "Use other logic module to capture weather warnings!")
 
