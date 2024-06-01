@@ -6,6 +6,9 @@ Baustein zum Abruf von Warnmeldungen über die <a href="https://nina.api.bund.de
 
 Alle Ausgänge sind als Send-by-Change (sbc) ausgeführt.
 
+<span style="color:red">Der Baustein zeigt standardmäßig **keine** DWD-Warnungen. Er filtert sie sogar aktiv heraus. DWD Warnungen
+müssen über **Eingang 4** aktiviert oder über einen anderen Baustein bezogen und verarbeitet werden!</span><br>Z.B. diesen hier: [14101 DWD-Unwetter](https://github.com/En3rGy/14101_DWDUnwetter)
+
 ## Inputs
 
 | No. | Name                       | Initialisation | Description                                                                                                                                                                                                                |
@@ -13,7 +16,7 @@ Alle Ausgänge sind als Send-by-Change (sbc) ausgeführt.
 | 1   | Amtlicher Gebietsschlüssel | ""             | Amtlicher Gebietsschlüssel, kann z.B. <a href="https://www.orte-in-deutschland.de/">hier</a> bezogen werden. Die Letzten 7 Stellen müssen mit "0000000" ersetzt werden, da Daten nur auf Kreisebene bereitgestellt werden. |
 | 2   | Update-Rate (s)            | 307            | Intervall in Sekunden, in dem der BBK-Server nach neuen Warnungen abgefragt wird.                                                                                                                                          |
 | 3   | Ein/Aus                    | 1              | Bei 1 arbeitet der Bautein, bei 0 nicht                                                                                                                                                                                    |
-
+| 4   | DWD-Meldungen nutzen (1/0) | 0              | Bei einer 1 werden die DWD-Warnungen verarbeitet, die über NINA bereitgestellt werden. Bei einer 0 werden diese gefiltert (sinnvoll, wenn hierfür ein eigener Baustein verwendet wird).                                    |
 
 ## Ausgänge
 
@@ -24,7 +27,7 @@ Alle Ausgänge sind als Send-by-Change (sbc) ausgeführt.
 | 3   | Schweregrad    | 0              | Schweregrad der kritischsten Meldung                                                                                                                                                                                                                                                                                                                |
 | 4   | Dringlichkeit  | ""             | Dringlichkeit der kritischsten Meldung                                                                                                                                                                                                                                                                                                              |
 | 5   | Gewissheit     | 0              | Sicherheit / Gewissheit der kritischsten Meldung                                                                                                                                                                                                                                                                                                    |
-| 6   | Beschriebung   | 0              | Beschreibung der kritischsten Meldung                                                                                                                                                                                                                                                                                                               |
+| 6   | Beschreibung   | 0              | Beschreibung der kritischsten Meldung                                                                                                                                                                                                                                                                                                               |
 | 7   | Anleitung      | 0              | Verhaltensanweisung zur kritischsten Meldung                                                                                                                                                                                                                                                                                                        |
 | 8   | Symbol-Id      | 0              | Id des Symbols für die kritischste Meldung<br>Grundlage für die Id ist der EVent Code. das BBK bietet Symbole für folgende Event Codes BBK-EVC-?, wobei das ? eine 3-stellige Zahl ersetzt. Für den Event Code BBK-EVC-004 liefert der Baustein bspw. die Id 4.<br>1 = Std. Symbol, bzw. Event Code nicht von der Art BBK-EVC<br>0 = Keine Meldung. |
 | 9   | Symbol-URL     | ""             | URL zum BBK Symbol des Events                                                                                                                                                                                                                                                                                                                       |
@@ -39,25 +42,7 @@ Alle Ausgänge sind als Send-by-Change (sbc) ausgeführt.
 
 ### Change Log
 
-- v0.07
-  - Bug: Exception, wenn keine Warnung vorliegt
-- v0.06
-  - Impr.: Set default event code (& symbol url) in case no event code could be received
-- v0.05
-  - Fixed bug: Abfrage Timer beendet, wenn keine Daten abgerufen werden können.
-- v0.04
-  - Refactoring
-  - Ausgänge sbc
-  - Bugfix: Doppelte Warnungen entfernt
-  - Bugfix: Jetzt wird die schlimmste Warnung ausgegeben
-- v0.03
-  - Bug: Crash bei Wiederholung nach 1. Timeout behoben
-  - Bug: Reset der Ausgänge bei fehlender Warnung korrigiert
-  - Impr.: Wenn keine Warnung vorliegt, wird als Symbol-URL `0` ausgegeben
-- v0.02
-  - Impr.: Symbol-URL als Ausgabe ergänzt
-- v0.01
-    - Initiales Release
+Siehe Changelog zum jew. [Release](https://github.com/En3rGy/14109_NINA_API/releases) auf GitHub. 
 
 ### Open Issues / Know Bugs
 
@@ -106,7 +91,7 @@ x
 
 ## Licence
 
-Copyright 2022 T. Paul
+Copyright 2024 T. Paul
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 

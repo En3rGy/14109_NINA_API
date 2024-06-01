@@ -20,6 +20,7 @@ class NINAAPI_14109_14109(hsl20_4.BaseModule):
         self.PIN_I_SAGS=1
         self.PIN_I_NUPDATERATE=2
         self.PIN_I_NON=3
+        self.PIN_I_PROCESS_DWD=4
         self.PIN_O_SALLWARNINGS=1
         self.PIN_O_SHEADLINE=2
         self.PIN_O_NSEVERITY=3
@@ -62,6 +63,7 @@ class NINAAPI_14109_14109(hsl20_4.BaseModule):
             self.symbol_url = str()  # type: str
             self.event_id = -1  # type: int
             self.severity_lookup = {"Vorwarnung": 1, "Minor": 2, "Moderate": 3, "Severe": 4, "Extreme": 5}
+            self.process_dwd = False
 
         def __str__(self):
             return str("\n-------------\n" +
@@ -175,7 +177,7 @@ class NINAAPI_14109_14109(hsl20_4.BaseModule):
             if not isinstance(info, dict):
                 raise Exception("set_detailed_warning | Not a dict. Aborting")
 
-            if "senderName" in info:
+            if ("senderName" in info) and not self.process_dwd:
                 sender_name = self.get_val(info, "senderName")
                 if sender_name == "Deutscher Wetterdienst":
                     raise Exception("Received DWD warning. Aborting. "
@@ -322,11 +324,12 @@ class NINAAPI_14109_14109(hsl20_4.BaseModule):
 
                 for warning in data:
                     w = self.Warning()
+                    w.process_dwd = bool(self._get_input_value(self.PIN_I_PROCESS_DWD))
                     warning_id = w.set_warning(warning)
                     if warning_id:
                         try:
                             detailed_data = self.get_data(warning_id)
-                            ret = w.set_detailed_warning(detailed_data)
+                            w.set_detailed_warning(detailed_data)
                         except Exception as e:
                             self.log_msg("update | Exception {}. Continuing with next warning.".format(e))
                             continue

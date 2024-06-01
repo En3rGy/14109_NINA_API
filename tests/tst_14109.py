@@ -31,6 +31,7 @@ class TestSequenceFunctions(unittest.TestCase):
         self.test.debug_input_value[self.test.PIN_I_NON] = False
         self.test.on_init()
         self.test.debug_input_value[self.test.PIN_I_NON] = True
+        # self.test.debug_input_value[self.test.PIN_I_PROCESS_DWD] = True
 
     def test_operators(self):
         print("\n### test_operators")
