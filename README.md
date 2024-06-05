@@ -7,16 +7,18 @@ Baustein zum Abruf von Warnmeldungen über die <a href="https://nina.api.bund.de
 Alle Ausgänge sind als Send-by-Change (sbc) ausgeführt.
 
 <span style="color:red">Der Baustein zeigt standardmäßig **keine** DWD-Warnungen. Er filtert sie sogar aktiv heraus. DWD Warnungen
-müssen über **Eingang 4** aktiviert oder über einen anderen Baustein bezogen und verarbeitet werden!</span><br>Z.B. diesen hier: [14101 DWD-Unwetter](https://github.com/En3rGy/14101_DWDUnwetter)
+müssen über **Eingang 6** aktiviert oder über einen anderen Baustein bezogen und verarbeitet werden!</span><br>Z.B. diesen hier: [14101 DWD-Unwetter](https://github.com/En3rGy/14101_DWDUnwetter)
 
 ## Inputs
 
-| No. | Name                       | Initialisation | Description                                                                                                                                                                                                                |
-|-----|----------------------------|----------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 1   | Amtlicher Gebietsschlüssel | ""             | Amtlicher Gebietsschlüssel, kann z.B. <a href="https://www.orte-in-deutschland.de/">hier</a> bezogen werden. Die Letzten 7 Stellen müssen mit "0000000" ersetzt werden, da Daten nur auf Kreisebene bereitgestellt werden. |
-| 2   | Update-Rate (s)            | 307            | Intervall in Sekunden, in dem der BBK-Server nach neuen Warnungen abgefragt wird.                                                                                                                                          |
-| 3   | Ein/Aus                    | 1              | Bei 1 arbeitet der Bautein, bei 0 nicht                                                                                                                                                                                    |
-| 4   | DWD-Meldungen nutzen (1/0) | 0              | Bei einer 1 werden die DWD-Warnungen verarbeitet, die über NINA bereitgestellt werden. Bei einer 0 werden diese gefiltert (sinnvoll, wenn hierfür ein eigener Baustein verwendet wird).                                    |
+| No. | Name                       | Initialisation | Description                                                                                                                                                                                                                                                       |
+|-----|----------------------------|----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 1   | Amtlicher Gebietsschlüssel |                | Amtlicher Gebietsschlüssel, kann z.B. <a href="https://www.orte-in-deutschland.de/">hier</a> bezogen werden. Die Letzten 7 Stellen müssen mit "0000000" ersetzt werden, da Daten nur auf Kreisebene bereitgestellt werden.                                        |
+| 2   | POI N-Lat.                 | 0              | Nordweisender Latitude-Wert des POI als Dezimalgrad, z.B. 48.1234<br>Der POI (Point of Interest) beschreibt die genaue Koordinate für die Warnungen empfangen werden sollen. Der POI muss natürlich innerhalb des Gebiets des amtlichen Gebietsschlüssels liegen! |
+| 3   | POI E-Lon.                 | 0              | Ostweisender Longitude-Wert des POI als Dezimalgrad, z.B. 11.1234<br>Der POI (Point of Interest) beschreibt die genaue Koordinate für die Warnungen empfangen werden sollen. Der POI muss natürlich innerhalb des Gebiets des amtlichen Gebietsschlüssels liegen! |
+| 4   | Update-Rate (s)            | 307            | Intervall in Sekunden, in dem der BBK-Server nach neuen Warnungen abgefragt wird.                                                                                                                                                                                 |
+| 5   | Ein/Aus                    | 1              | Bei 1 arbeitet der Bautein, bei 0 nicht                                                                                                                                                                                                                           |
+| 6   | DWD-Meldungen nutzen (1/0) | 0              | Bei einer 1 werden die DWD-Warnungen verarbeitet, die über NINA bereitgestellt werden. Bei einer 0 werden diese gefiltert (sinnvoll, wenn hierfür ein eigener Baustein verwendet wird).                                                                           |
 
 ## Ausgänge
 
@@ -83,7 +85,9 @@ x
 
 ### Solution Outline
 
-x
+Der Baustein ruft über die NINA-API alle relevanten Warnungen für das durch den Gebietsschlüssel definierte Gebiets ab.
+
+Da dieses Gebiet recht groß seien kann, werden über einen POI (Point of Interest) alle Warnungen gefiltert, die nicht den POI enthalten. 
 
 ## Validation & Verification
 

@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <config>
     <modules>
-        <module category="Datenaustausch" context="hsl20_4_NINA_API" id="14109" name="NINA API (14109)" version="0.9">
+        <module category="Datenaustausch" context="hsl20_4_NINA_API" id="14109" name="NINA API (14109)" version="1.0">
             <inputs>
-				<input type="string" const_name="sAGS" init_value="">1: Amtlicher Gebietsschlüssel</input>
-				<input type="number" const_name="nUpdateRate" init_value="307">2: Update-Rate (s)</input>
-				<input type="number" const_name="nOn" init_value="1">3: Ein/Aus (1/0)</input>
-				<input type="number" const_name="process_dwd" init_value="0">4: DWD-Meldungen nutzen (1/0)</input>
+				<input type="string" const_name="sAGS" init_value="">Amtlicher Gebietsschlüssel</input>
+				<input type="number" const_name="latitude" init_value="0">POI N-Lat.</input>
+				<input type="number" const_name="longitude" init_value="0">POI E-Lon.</input>
+				<input type="number" const_name="nUpdateRate" init_value="307">Update-Rate (s)</input>
+				<input type="number" const_name="nOn" init_value="1">Ein/Aus (1/0)</input>
+				<input type="number" const_name="process_dwd" init_value="0">DWD-Meldungen nutzen (1/0)</input>
             </inputs>
             <outputs>
 				<output type="string" const_name="sAllWarnings" init_value="">1: Alle Warnungen</output>			
