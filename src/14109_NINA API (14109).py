@@ -182,7 +182,12 @@ class NINAAPI_14109_14109(hsl20_4.BaseModule):
                     if len(info["eventCode"]) == 1:
                         self.event_code = get_val(info["eventCode"][0], "value")
                 else:
-                    self.event_code = "BBK-EVC-001"
+                    if "event" in info:
+                        event = info["event"] # type: str
+                        if event == "Flood":
+                            self.event_code = "BBK-EVC-038"
+                        else:
+                            self.event_code = "BBK-EVC-078" # Warnung
 
             self.symbol_url = "https://nina.api.proxy.bund.dev/api31/appdata/gsb/eventCodes/{}.png".format(self.event_code)
 
